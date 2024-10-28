@@ -3,31 +3,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Моя HTML страница</title>
+    <title>Приветствие от кота</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
             margin: 0;
             padding: 0;
-            text-align: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
         }
-        h1 {
-            color: #333;
+
+        .cat-container {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: fadeIn 1s ease-in forwards, moveLeft 3s ease-in-out forwards;
         }
-        p {
-            margin: 20px;
-            font-size: 1.2em;
+
+        iframe {
+            width: 200px;
+            height: 200px;
+            margin-right: 20px;
         }
-        a {
-            color: #009688;
-            text-decoration: none;
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .speech {
+            font-size: 18px;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 3px solid black;
+            opacity: 1;
+            animation: typing 2s steps(40) forwards, blink-caret 0.5s step-end infinite;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+            opacity: 0;
+            margin-top: 10px;
+            transition: opacity 1s;
+            position: relative;
+        }
+
+        .button {
+            background-color: #d8b4e2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #c394d8;
+        }
+
+        /* Специальный класс для второй кнопки */
+        .second-button {
+            background-color: #ffa07a;
+        }
+
+        .second-button:hover {
+            background-color: #ff7f50;
+        }
+
+        /* Стили для всплывающей GIF */
+        #hoverGif {
+            display: none; /* Скрыта по умолчанию */
+            position: absolute;
+            left: calc(50% + 250px); /* Позиция справа от кнопки */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            height: 200px;
+            border: none;
+        }
+
+        /* Стили для GIF на весь экран при завершении */
+        #fullscreenGif {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 1000;
+        }
+
+        @keyframes typing {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
+        }
+
+        @keyframes blink-caret {
+            50% {
+                border-color: transparent;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes moveLeft {
+            from {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            to {
+                left: 10%;
+                transform: translateX(0);
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Добро пожаловать на мой сайт!</h1>
-    <p>Эта страница создана с нуля в HTML.</p>
-    <p><a href="https://example.com" target="_blank">Перейти на другой сайт</a></p>
+
+    <div class="cat-container" id="catContainer">
+        <iframe id="catGif" src="https://giphy.com/embed/IdRpSgQ8D2C8H1n9XD" frameborder="0" allowfullscreen></iframe>
+        <div class="content-container" id="contentContainer"></div>
+    </div>
+
+    <!-- Всплывающая GIF, отображается только при передаче параметра -->
+    <iframe id="hoverGif" frameborder="0" allowfullscreen></iframe>
+
+    <!-- GIF на весь экран для завершения -->
+    <iframe id="fullscreenGif" frameborder="0" allowfullscreen></iframe>
+
+    <script>
+        // Получаем элементы для основного GIF, всплывающего GIF и GIF на весь экран
+        const catGif = document.getElementById('catGif');
+        const hoverGif = document.getElementById('hoverGif');
+        const fullscreenGif = document.getElementById('fullscreenGif');
+
+        // Функция для создания блока с текстом и кнопками
+        function createContentBlock(text, buttonText, onClick, secondButtonText = null, secondOnClick = null, hoverGifSrc = null) {
+            const block = document.createElement('div');
+            block.classList.add('content-block');
+
+            const speech = document.createElement('div');
+            speech.classList.add('speech');
+            speech.textContent = text;
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.classList.add('button-container');
+
+            const button = document.createElement('button');
+            button.classList.add('button');
+            button.textContent = buttonText;
+            button.addEventListener('click', onClick);
+
+            buttonContainer.appendChild(button);
+
+            // Добавляем вторую кнопку с другим стилем, если переданы текст и обработчик
+            if (secondButtonText && secondOnClick) {
+                const secondButton = document.createElement('button');
+                secondButton.classList.add('button', 'second-button');
+                secondButton.textContent = secondButtonText;
+                secondButton.addEventListener('click', secondOnClick);
+
+                buttonContainer.appendChild(secondButton);
+
+                // Показываем всплывающий GIF при наведении, если передан src
+                if (hoverGifSrc) {
+                    hoverGif.src = hoverGifSrc;
+                    secondButton.addEventListener('mouseenter', () => {
+                        hoverGif.style.display = 'block';
+                    });
+                    secondButton.addEventListener('mouseleave', () => {
+                        hoverGif.style.display = 'none';
+                    });
+                } else {
+                    hoverGif.style.display = 'none'; // Скрываем GIF, если он не нужен
+                }
+            }
+
+            block.appendChild(speech);
+            block.appendChild(buttonContainer);
+
+            // Показать кнопки через 100 мс после завершения анимации печати текста
+            speech.addEventListener('animationend', (event) => {
+                if (event.animationName === 'typing') {
+                    setTimeout(() => {
+                        buttonContainer.style.opacity = '1';
+                    }, 100);
+                }
+            });
+
+            return block;
+        }
+
+        // Функция для добавления нового контента, смены GIF и отображения полноэкранного GIF при завершении
+        function addContent(text, buttonText, gifSrc, nextContentCallback, secondButtonText = null, secondOnClick = null, hoverGifSrc = null, finishPage = null) {
+            // Обновляем основной GIF, если передан новый src
+            if (gifSrc) {
+                catGif.src = gifSrc;
+            }
+
+            // Если передан finishPage, то показываем GIF на весь экран
+            if (finishPage) {
+                fullscreenGif.src = finishPage;
+                fullscreenGif.style.display = 'block';
+
+                // Скрываем остальные элементы
+                document.getElementById('catContainer').style.display = 'none';
+                document.getElementById('contentContainer').style.display = 'none';
+
+                // Показать полноэкранный GIF на 5 секунд, затем перезагрузить страницу
+                setTimeout(() => {
+                    location.reload();
+                }, 4500);
+                return; // Выходим из функции, чтобы остановить дальнейшие действия
+            }
+
+            // Очищаем контейнер перед добавлением нового блока
+            const contentContainer = document.getElementById('contentContainer');
+            contentContainer.innerHTML = '';
+            const block = createContentBlock(text, buttonText, nextContentCallback, secondButtonText, secondOnClick, hoverGifSrc);
+            contentContainer.appendChild(block);
+        }
+
+        // Запуск первоначального контента с первым GIF
+        addContent(
+            'Вааау... Привет! Наконец-то ты зашел в гости',
+            'Привет!',
+            'https://giphy.com/embed/IdRpSgQ8D2C8H1n9XD', // Первый GIF
+            () => {
+                addContent(
+                    'Наверное, ты хочешь увидеть мою лабу?..',
+                    'Очень хочу!',
+                    'https://giphy.com/embed/j8UxjCDIYG0m7ZiBJk', // Второй GIF
+                    () => {
+                        addContent(
+                            'Может договоримся? ;)',
+                            'А давай!',
+                            'https://giphy.com/embed/VEsEbxI7kOpkItLtJY', // Третий GIF
+                            () => {
+                                addContent(
+                                    'УРА!!! Пиши в телегу ;)',
+                                    'Уже пишу :)',
+                                    'https://giphy.com/embed/MhYGO6XdrbUb19Ld1q', // Четвертый GIF
+                                    () => alert('Лучший!!! Жду :)'),  // Действие первой кнопки
+                                    'Все-таки покажи лабу..', // Вторая кнопка на последнем вопросе
+                                    () => addContent('', '', '', null, null, null, null, 'https://giphy.com/embed/65NO1TrKrJUT6'), // finishPage GIF на весь экран
+                                    'https://giphy.com/embed/BBNYBoYa5VwtO' // Hover GIF, только для четвертого этапа
+                                );
+                            },
+                            'Показывай уже..', // Вторая кнопка на третьем этапе
+                            () => addContent('', '', '', null, null, null, null, 'https://giphy.com/embed/65NO1TrKrJUT6'), // finishPage GIF на весь экран
+                            'https://giphy.com/embed/l0ExdMHUDKteztyfe' // Hover GIF, только для третьего этапа
+                        );
+                    }
+                );
+            }
+        );
+    </script>
+
 </body>
 </html>
